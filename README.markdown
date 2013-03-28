@@ -8,15 +8,30 @@ Python wsgi compatible apps, this kit can help you.
 **If you're not from Brasil, maybe you'll have to change `server/server_setup.sh`
   timezone, currently configured to America/Sao_Paulo**
 
+## Django Apps
+
+This kit is intended to work with Python WSGI Apps but currently we only use and test it against
+Django apps.
+
+This is how we bootstrap our Django Projects
+
+```
+django-admin.py startproject --template=https://github.com/loogica/loogica_project_template/archive/master.zip my_new_startup
+cd my_new_startup\my_new_startup
+django-admin.py startapp --template=https://github.com/loogica/loogica_app_template/archive/master.zip startup_app
+```
+
+You MUST modify 2 files: `Makefile` and project_root/settings/base.py and add your app to INSTALLED_APPS
+
 ## How it works?
 
 There are 3 phases:
 
-1 - Setup your credentials and configure a Python Wsgi Friendly machine.
-2 - Install envkit in your project.
-3 - Setup a machine to run some specific app. This phase requires a `env/deploy.cfg` file.
+1. Setup your credentials and configure a Python Wsgi Friendly machine.
+2. Install envkit in your project.
+3. Setup a machine to run some specific app. This phase requires a `env/deploy.cfg` file.
 
-## Bootstrating machies
+## Bootstraping Machines
 
 First of all you need to set up your credentials helper file:
 
@@ -73,6 +88,23 @@ fab prod postgres_db_create:dbuser,dbname,password
 ```sh
 fab prod nginx_setup
 ```
+
+## Deploy restrictions
+
+Your project root must have a Makefile in order to make the deploy possible. Here's an example:
+
+```Makefile
+server_dbinitial:
+	python manage.py syncdb --noinput && python manage.py createsuperuser --user admin --email admin@admin.com
+
+migrate_no_input:
+	python manage.py migrate --noinput $(APPS)
+
+update_deps:
+	sudo pip install -r requirements.txt
+```
+
+If you're running, for instance, a Flask app, some targets may be empty.
 
 ### First Deploy
 
