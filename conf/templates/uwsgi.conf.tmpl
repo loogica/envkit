@@ -1,0 +1,18 @@
+[program:$APP_NAME]
+command=/usr/sbin/uwsgi
+  --socket /opt/run/$APP_NAME.sock
+  --chmod-socket
+  --module wsgi
+  --pythonpath /opt/apps/$APP_NAME/current/
+  --processes 5
+  --master
+  --harakiri 120
+directory=/opt/apps/$APP_NAME/current/$APP_NAME
+environment=DJANGO_SETTINGS_MODULE='settings'
+user=deploy
+group=www-data
+autostart=true
+autorestart=true
+stdout_logfile=/opt/log/$APP_NAME/uwsgi.log
+redirect_stderr=true
+stopsignal=QUIT

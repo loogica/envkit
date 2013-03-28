@@ -1,0 +1,10 @@
+server {
+    listen 80;
+    server_name $SERVER_NAME;
+
+    root /opt/apps/$APP_NAME;
+
+    location / {
+        root /opt/apps/$APP_NAME;
+    }
+}
