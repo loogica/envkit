@@ -1,0 +1,41 @@
+#!/bin/sh
+
+PROJECT=$1
+APP=$2
+
+# for postgres on OSX installed via brew, the root user is your main user
+DEFAULT_DB_USER=`eval whoami`
+
+cd $3
+
+# Create Templates
+
+django-admin.py startproject --template=https://github.com/loogica/loogica_project_template/archive/master.zip $PROJECT
+cd $PROJECT/$PROJECT
+django-admin.py startapp --template=https://github.com/loogica/loogica_app_template/archive/master.zip $APP
+
+# config: settings/base.py settings/local.py urlspy Makefile
+
+sed "s/\$APP/$APP/g" $PROJECT/settings/base.py > $PROJECT/settings/_base.py
+mv $PROJECT/settings/_base.py $PROJECT/settings/base.py
+
+sed "s/\$APP/$APP/g" $PROJECT/urls.py > $PROJECT/_urls.py
+mv $PROJECT/_urls.py $PROJECT/urls.py
+
+sed "s/\$APP/$APP/g;s/\$PROJECT/$PROJECT/g" Makefile > _Makefile
+mv _Makefile Makefile
+
+sed "s/\$PROJECT/$PROJECT/g;s/\$DEFAULT_DB_USER/$DEFAULT_DB_USER/g" $PROJECT/settings/local.py > $PROJECT/settings/_local.py
+mv $PROJECT/settings/_local.py $PROJECT/settings/local.py
+
+# Posgtres createdb
+createdb $PROJECT
+
+# Django venv and migration bootstraping
+make venv_boot
+make dbreset
+make dbinitial
+make migrate
+
+# Run!!
+make runserver

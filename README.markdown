@@ -13,15 +13,13 @@ Python wsgi compatible apps, this kit can help you.
 This kit is intended to work with Python WSGI Apps but currently we only use and test it against
 Django apps.
 
+### Improved Bootstraping
 This is how we bootstrap our Django Projects
 
+```sh
+chmod +x boom
+./boom project_name app_name /tmp
 ```
-django-admin.py startproject --template=https://github.com/loogica/loogica_project_template/archive/master.zip my_new_startup
-cd my_new_startup\my_new_startup
-django-admin.py startapp --template=https://github.com/loogica/loogica_app_template/archive/master.zip startup_app
-```
-
-You MUST modify 2 files: `Makefile` and project_root/settings/base.py and add your app to INSTALLED_APPS
 
 ## How it works?
 
