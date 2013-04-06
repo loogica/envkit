@@ -202,7 +202,7 @@ def _upload_source(revision, project_dir):
     return release_dir
 
 
-def deploy(revision, no_initial_migrate=True):
+def deploy(revision, first=False):
     '''
     Make the application deploy.
 
@@ -222,9 +222,13 @@ def deploy(revision, no_initial_migrate=True):
     with cd('/etc/supervisor/conf.d'):
         sudo('ln -sf %s/env/app_wsgi.conf %s.conf' % (release_dir, APP_NAME))
 
+    if first:
+        # admin static ln
+        pass
+
     with cd(release_dir):
         run("make update_deps")
-        if not no_initial_migrate:
+        if first:
             run("make server_dbinitial")
         run("make migrate_no_input")
 
@@ -233,7 +237,7 @@ def deploy(revision, no_initial_migrate=True):
 
 
 def first_deploy(revision):
-    deploy(revision, no_initial_migrate=False)
+    deploy(revision, first=True)
 
 
 def postgres_db_create(dbuser, dbname, password):
@@ -241,11 +245,16 @@ def postgres_db_create(dbuser, dbname, password):
         Create a Psql Database: db_create:dbuser,dbname,password
 
     Example: db_create:username,databasename,password
-
-    The password will be randomly generated.
-    ** This command must be executed by a sudoer.
     """
     env.user=ADMIN_USER
+
+    prod_settings_file = local('find . | grep settings/production.py', capture=True)
+    temp_prod_settings_file = prod_settings_file.replace('/p', '/_p')
+    local('sed "s/\$PROD_USER/%s/g;s/\$PROD_PASS/%s/g" %s > %s' % (dbuser,
+                                                                   password,
+                                                                   prod_settings_file,
+                                                                   temp_prod_settings_file))
+    local('mv %s %s' % (temp_prod_settings_file, prod_settings_file))
 
     sudo('psql template1 -c "CREATE USER %s WITH CREATEDB ENCRYPTED PASSWORD \'%s\'"' % (dbuser, password), user='postgres')
     sudo('createdb "%s" -O "%s"' % (dbname, dbuser), user='postgres')
