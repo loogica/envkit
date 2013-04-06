@@ -28,8 +28,8 @@ mv _Makefile Makefile
 sed "s/\$PROJECT/$PROJECT/g;s/\$DEFAULT_DB_USER/$DEFAULT_DB_USER/g" $PROJECT/settings/local.py > $PROJECT/settings/_local.py
 mv $PROJECT/settings/_local.py $PROJECT/settings/local.py
 
-sed "s/\$PROJECT/$PROJECT/g" $PROJECT/settings/prod.py > $PROJECT/settings/_prod.py
-mv $PROJECT/settings/_prod.py $PROJECT/settings/prod.py
+sed "s/\$PROJECT/$PROJECT/g" $PROJECT/settings/production.py > $PROJECT/settings/_production.py
+mv $PROJECT/settings/_production.py $PROJECT/settings/production.py
 
 # Posgtres createdb
 createdb $PROJECT
