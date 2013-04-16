@@ -77,6 +77,8 @@ fab prod setup_app
 
 ### Create App database
 
+**dbname should be same as project name**
+
 ```sh
 fab prod postgres_db_create:dbuser,dbname,password
 ```
