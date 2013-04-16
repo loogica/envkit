@@ -255,6 +255,8 @@ def postgres_db_create(dbuser, dbname, password):
                                                                    prod_settings_file,
                                                                    temp_prod_settings_file))
     local('mv %s %s' % (temp_prod_settings_file, prod_settings_file))
+    local('git add %s' % (prod_settings_file))
+    local('git commit -m "envkit: set database config"')
 
     sudo('psql template1 -c "CREATE USER %s WITH CREATEDB ENCRYPTED PASSWORD \'%s\'"' % (dbuser, password), user='postgres')
     sudo('createdb "%s" -O "%s"' % (dbname, dbuser), user='postgres')
