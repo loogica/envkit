@@ -57,7 +57,7 @@ def config():
     pass
 
 
-def config_user():
+def config_user(key_path, home_ssh_key=True):
     '''
         fab config_user
 
@@ -73,8 +73,12 @@ def config_user():
     password = local('perl -e \'print crypt(\"%s\", \"password\")\'' % (password),
                      capture=True)
 
-    key_file_name = os.path.join(pwd.getpwnam(os.getlogin())[5],
-                                 ".ssh/id_rsa.pub")
+    if home_ssh_key == 'false':
+        key_file_name = key_path
+    else:
+        key_file_name = os.path.join(pwd.getpwnam(os.getlogin())[5],
+                                    ".ssh/id_rsa.pub")
+
     with open(key_file_name, "r") as ssh_file, \
          open("server/users.sh.tmpl", "r") as users_file, \
          open("server/users.sh", "w") as out_file:

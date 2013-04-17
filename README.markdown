@@ -39,6 +39,12 @@ First of all you need to set up your credentials helper file:
 fab config config_user
 ```
 
+Provide custom pub key file:
+
+```sh
+fab config config_user:./custom_key.pub,false
+```
+
 This task will ask for a `username` and `password`. This password will be the sudo password
 for the user `username`.
 
