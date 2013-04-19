@@ -214,6 +214,9 @@ def deploy(revision, first=False):
     '''
     env.user = DEPLOY_USER
     project_dir = os.path.join(env.ENV_APPS, APP_NAME)
+    current_dir = os.path.join(project_dir, "current")
+    current_static = os.path.join(current_dir, APP_NAME)
+    current_static = os.path.join(current_static, "static")
     release_dir = _upload_source(revision, project_dir)
 
     with cd(project_dir):
@@ -226,9 +229,8 @@ def deploy(revision, first=False):
     with cd('/etc/supervisor/conf.d'):
         sudo('ln -sf %s/env/app_wsgi.conf %s.conf' % (release_dir, APP_NAME))
 
-    if first:
-        # admin static ln
-        pass
+    with cd(current_static): #TODO It would be nice configure this
+        sudo('sudo ln -s /usr/local/lib/python2.7/dist-packages/django/contrib/admin/static/admin/ admin')
 
     with cd(release_dir):
         run("make update_deps")
