@@ -124,6 +124,27 @@ fab prod first_deploy:HEAD
 fab prod deploy:HEAD
 ```
 
+## Django Make Targets
+
+Create a new app based on our app template.
+
+```sh
+make new_app app_name
+```
+
+Add this app to settings.py `INSTALLED_APPS` and create
+initial migration for it
+
+```sh
+make app_schemamigration app_name
+```
+
+Finally, update you `Makefile` and modify it's first line adding your app
+separeted by space like:
+
+```Makefile
+APPS=app1 app2
+```
 
 ## License
 
