@@ -55,6 +55,7 @@ apt-get -q -y install htop
 apt-get -q -y install watchdog
 apt-get -q -y install mailutils
 apt-get -q -y install htop
+apt-get -q -y install zip
 
 ##########
 # Common #
