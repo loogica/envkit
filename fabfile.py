@@ -86,12 +86,11 @@ def config_user(key_path=user_key_path):
     for command in command_sequence:
         run(command.format(**locals()))
 
-def remove_user():
+def remove_user(username):
     '''
         fab env remove_user
     '''
     env.user = custom_env['admin_user']
-    username = prompt('Username: ')
 
     command_sequence = [
         'userdel {username}',
