@@ -55,9 +55,10 @@ def environment_config(path):
 
 files = os.listdir('env')
 for conf_file in files:
-    env_name = conf_file.split('.')[0]
-    print(conf_file)
-    globals()[env_name] = environment_config(os.path.join('env', conf_file))
+    if conf_file.endswith('.cfg'):
+        env_name = conf_file.split('.')[0]
+        print(conf_file)
+        globals()[env_name] = environment_config(os.path.join('env', conf_file))
 
 user_key_path = os.path.join(pwd.getpwnam(os.getlogin())[5], ".ssh/id_rsa.pub")
 def config_user(key_path=user_key_path):
