@@ -87,6 +87,29 @@ def config_user(key_path=user_key_path):
     for command in command_sequence:
         run(command.format(**locals()))
 
+def config_project_user(key_path=user_key_path):
+    env.user = custom_env['admin_user']
+    username = prompt('Username: ')
+    password = getpass.getpass("Password: ")
+    password = local('perl -e \'print crypt(\"%s\", \"password\")\'' % (password),
+                     capture=True)
+    ssh_file = open(key_path, "r")
+    pub_key = ssh_file.read()
+
+    command_sequence = [
+        'useradd -m -s /bin/bash -p {password} {username}',
+        'mkdir ~{username}/.ssh -m 700',
+        'echo "{pub_key}" >> ~{username}/.ssh/authorized_keys',
+        'chmod 644 ~{username}/.ssh/authorized_keys',
+        'chown -R {username}:{username} ~{username}/.ssh',
+        'usermod -a -G sudo {username}',
+        'usermod -a -G www-data {username}',
+        'echo "{username} ALL=(root) NOPASSWD: /usr/bin/pip, /usr/bin/crontab, /usr/sbin/service, /usr/bin/supervisorctl" >> /etc/sudoers'
+    ]
+
+    for command in command_sequence:
+        run(command.format(**locals()))
+
 def remove_user(username):
     '''
         fab env remove_user
@@ -96,6 +119,21 @@ def remove_user(username):
     command_sequence = [
         'userdel {username}',
         'rm -rf /home/{username}'
+    ]
+
+    for command in command_sequence:
+        run(command.format(**locals()))
+
+def remove_project_user(username):
+    '''
+        fab env remove_user
+    '''
+    env.user = custom_env['admin_user']
+
+    command_sequence = [
+        'userdel {username}',
+        'rm -rf /home/{username}',
+        "sed -i '/^{username}.*NOPASSWD.*/d' /etc/sudoers"
     ]
 
     for command in command_sequence:
