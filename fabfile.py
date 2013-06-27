@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import getpass
 import os
 import pwd
 
@@ -9,8 +10,6 @@ from fabric.api import run, env, put, sudo, cd, local, lcd, settings, get, \
                        hide, abort, require, prompt
 from fabric.contrib.files import exists
 from fabric.colors import red
-
-os.chdir(os.path.dirname(__file__))
 
 REMOTE_ROOT = '/opt/'
 
@@ -23,71 +22,122 @@ env.update(
     ENV_CONF     = REMOTE_ROOT + '/conf',
 )
 
-
 # Specify keys
 # env.key_filename = [path]
+custom_env = {}
 
-SERVER_ADDRESS = ''
-ADMIN_USER = ''
-DEPLOY_USER = ''
-APP_NAME = ''
+def lazy(func):
+    def lazyfunc(*args, **kwargs):
+        wrapped = lambda : func(*args, **kwargs)
+        wrapped.__name__ = "lazy-" + func.__name__
+        return wrapped
+    return lazyfunc
 
-
-def prod():
-    global SERVER_ADDRESS, ADMIN_USER, DEPLOY_USER, APP_NAME
+@lazy
+def environment_config(path):
+    global custom_env
 
     config = ConfigParser()
-    config.read('env/deploy.cfg')
+    config.read(path)
 
-    SERVER_ADDRESS = config.get('environment', 'address')
-    ADMIN_USER = config.get('environment', 'admin_user')
+    server_address = config.get('environment', 'address')
+    app_name = config.get('application', 'name')
+    project_user = config.get('environment', 'project_user')
+    admin_user = config.get('environment', 'admin_user')
 
-    if ADMIN_USER == "%ASK%":
-        ADMIN_USER = prompt("Admin username: ")
+    if project_user == "?":
+        project_user = prompt("Project Username: ")
 
-    DEPLOY_USER = config.get('environment', 'deploy_user')
-    APP_NAME = config.get('application', 'name')
+    env.hosts = [server_address]
+    env.environment = os.path.basename(path).split('.')[0]
+    custom_env['admin_user'] = admin_user
+    custom_env['project_user'] = project_user
 
-    env.hosts = [SERVER_ADDRESS]
-    env.environment = 'prod'
+files = os.listdir('env')
+for conf_file in files:
+    if conf_file.endswith('.cfg'):
+        env_name = conf_file.split('.')[0]
+        print(conf_file)
+        globals()[env_name] = environment_config(os.path.join('env', conf_file))
 
-
-def config():
-    env.hosts = []
-    pass
-
-
-def config_user(key_path, home_ssh_key=True):
+user_key_path = os.path.join(pwd.getpwnam(os.getlogin())[5], ".ssh/id_rsa.pub")
+def config_user(key_path=user_key_path):
     '''
-        fab config_user
-
-        This command will use server/users.sh.tmpl to generate a custom
-        server/users.sh
+        fab env config_user [pub_key_file]
     '''
-    username = prompt('Username or (s)kip:')
+    env.user = custom_env['admin_user']
 
-    if username == "s":
-        return
-
-    password = prompt("Password:")
+    username = prompt('Username: ')
+    password = getpass.getpass("Password: ")
     password = local('perl -e \'print crypt(\"%s\", \"password\")\'' % (password),
                      capture=True)
 
-    if home_ssh_key == 'false':
-        key_file_name = key_path
-    else:
-        key_file_name = os.path.join(pwd.getpwnam(os.getlogin())[5],
-                                    ".ssh/id_rsa.pub")
+    ssh_file = open(key_path, "r")
+    pub_key = ssh_file.read()
 
-    with open(key_file_name, "r") as ssh_file, \
-         open("server/users.sh.tmpl", "r") as users_file, \
-         open("server/users.sh", "w") as out_file:
-        pub_key = ssh_file.read()
-        users_script = users_file.read()
-        out_file.write(users_script.replace("##PUBKEY##", pub_key)\
-                                   .replace("##USERNAME##", username)
-                                   .replace("##ENCPASSWD##", password))
+    command_sequence = [
+        'useradd -m -s /bin/bash -p {password} {username}',
+        'mkdir ~{username}/.ssh -m 700',
+        'echo "{pub_key}" >> ~{username}/.ssh/authorized_keys',
+        'chmod 644 ~{username}/.ssh/authorized_keys',
+        'chown -R {username}:{username} ~{username}/.ssh',
+        'usermod -a -G sudo {username}'
+    ]
 
+    for command in command_sequence:
+        run(command.format(**locals()))
+
+def config_project_user(key_path=user_key_path):
+    env.user = custom_env['admin_user']
+    username = prompt('Username: ')
+    password = getpass.getpass("Password: ")
+    password = local('perl -e \'print crypt(\"%s\", \"password\")\'' % (password),
+                     capture=True)
+    ssh_file = open(key_path, "r")
+    pub_key = ssh_file.read()
+
+    command_sequence = [
+        'useradd -m -s /bin/bash -p {password} {username}',
+        'mkdir ~{username}/.ssh -m 700',
+        'echo "{pub_key}" >> ~{username}/.ssh/authorized_keys',
+        'chmod 644 ~{username}/.ssh/authorized_keys',
+        'chown -R {username}:{username} ~{username}/.ssh',
+        'usermod -a -G sudo {username}',
+        'usermod -a -G www-data {username}',
+        'echo "{username} ALL=(root) NOPASSWD: /usr/bin/pip, /usr/bin/crontab, /usr/sbin/service, /usr/bin/supervisorctl" >> /etc/sudoers'
+    ]
+
+    for command in command_sequence:
+        run(command.format(**locals()))
+
+def remove_user(username):
+    '''
+        fab env remove_user
+    '''
+    env.user = custom_env['admin_user']
+
+    command_sequence = [
+        'userdel {username}',
+        'rm -rf /home/{username}'
+    ]
+
+    for command in command_sequence:
+        run(command.format(**locals()))
+
+def remove_project_user(username):
+    '''
+        fab env remove_user
+    '''
+    env.user = custom_env['admin_user']
+
+    command_sequence = [
+        'userdel {username}',
+        'rm -rf /home/{username}',
+        "sed -i '/^{username}.*NOPASSWD.*/d' /etc/sudoers"
+    ]
+
+    for command in command_sequence:
+        run(command.format(**locals()))
 
 def server_bootstrap(hostname, fqdn, email):
     '''

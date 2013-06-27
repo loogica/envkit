@@ -25,28 +25,64 @@ chmod +x boom
 
 There are 3 phases:
 
-1. Setup your credentials and configure a Python Wsgi Friendly machine.
-2. Install envkit in your project.
-3. Setup a machine to run some specific app. This phase requires a `env/deploy.cfg` file.
+1. Environment Settings.
+2. Setup Remote Access.
+3. Configure a Python Wsgi Friendly machine.
+4. Install envkit in your project.
+5. Setup a machine to run some specific app.
 
-## Bootstraping Machines
+### Environment Settings:
 
-First of all you need to set up your credentials helper file:
+Loogica Envkit will look for environment files over `env/`. If it finds a file
+named `stage.cfg` it'll configure and environment called `stage` that will work
+as a regular fabric environment.
+
+This is the template for a environment file:
+
+```ini
+[environment]
+address=
+admin_user=root
+project_user=
+
+[application]
+name=
+```
+
+#### Admin Vs. Project User
+
+An Admin can do basically everything since it's a sudoer.
+
+A Project User can only execute tasks related to a project like:
+
+* Deploy and Restart.
+* Read Logs.
+* Database tasks per project.
+
+### Remote Access
+
+Given a Root password, you already can setup what we call Admin and Project acctouns on your machine.
+
+To create an remote admin account given a public key:
+
+```sh
+fab environment config_user:[pub_key_path]
+```
+
+If you'll use your own public key just:
+
+```sh
+fab environment config_user
+```
+
+#### Remove Remote account
+
+```sh
+fab environment remove_user:username
+```
 
 ### Preparing
 
-```sh
-fab config config_user
-```
-
-Provide custom pub key file:
-
-```sh
-fab config config_user:./custom_key.pub,false
-```
-
-This task will ask for a `username` and `password`. This password will be the sudo password
-for the user `username`.
 
 ### Creating 
 
