@@ -73,10 +73,6 @@ EOF
 # Logwatch
 apt-get -q -y -o DPkg::Options::=--force-confnew install logwatch
 
-#
-## Users
-source users.sh
-
 # SSH
 sed -i 's/^#*\s*\(PasswordAuthentication\) \(yes\|no\)/\1 no/g' /etc/ssh/sshd_config
 sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication/g' /etc/ssh/sshd_config
@@ -91,7 +87,6 @@ apt-get -y -q install build-essential
 apt-get -y -q install python-dev
 apt-get -y -q install python-setuptools
 apt-get -y -q install python-pip
-apt-get -y -q install libpq-dev
 
 # Nginx Packages
 apt-get -y -q install libxml2-dev
@@ -119,4 +114,4 @@ apt-get install -y -q nginx
 source uwsgi.sh
 
 # Memcached
-# apt-get -y -q install memcached
+apt-get -y -q install memcached
