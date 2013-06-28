@@ -74,6 +74,9 @@ EOF
 # Logwatch
 apt-get -q -y -o DPkg::Options::=--force-confnew install logwatch
 
+# Watchdog
+./watchdog.sh
+
 # SSH
 sed -i 's/^#*\s*\(PasswordAuthentication\) \(yes\|no\)/\1 no/g' /etc/ssh/sshd_config
 sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication/g' /etc/ssh/sshd_config
