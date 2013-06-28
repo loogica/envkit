@@ -119,3 +119,15 @@ source uwsgi.sh
 
 # Memcached
 apt-get -y -q install memcached
+
+# Install Mysql
+if [ -f mysql.sh ];
+then
+   source mysql.sh
+fi
+
+# Install Postgres
+if [ -f postgres.sh ];
+then
+   source postgres.sh
+fi

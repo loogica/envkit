@@ -26,7 +26,7 @@ def server(hostname, fqdn, email):
     answer = ask('Which database to install? [Postgres, Mysql, None]',
         options={
             'P': ['server/pg_hba.conf', 'server/postgresql.sh'],
-            'M': ['server/mysql5.sh'],
+            'M': ['server/mysql.sh'],
             'N': []})
 
     files.extend(answer)
