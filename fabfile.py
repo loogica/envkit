@@ -53,19 +53,23 @@ def environment_config(path):
     custom_env['admin_user'] = admin_user
     custom_env['project_user'] = project_user
 
-files = os.listdir('env')
-for conf_file in files:
-    if conf_file.endswith('.cfg'):
-        env_name = conf_file.split('.')[0]
-        print(conf_file)
-        globals()[env_name] = environment_config(os.path.join('env', conf_file))
+try:
+    files = os.listdir('env')
+    for conf_file in files:
+        if conf_file.endswith('.cfg'):
+            env_name = conf_file.split('.')[0]
+            if not env_name in globals():
+                globals()[env_name] = environment_config(os.path.join('env', conf_file))
+except:
+    pass
 
-user_key_path = os.path.join(pwd.getpwnam(os.getlogin())[5], ".ssh/id_rsa.pub")
-def config_user(key_path=user_key_path):
+def config_user(key_path=None):
     '''
         fab env config_user [pub_key_file]
     '''
     env.user = custom_env['admin_user']
+    if not key_path:
+        key_path = os.path.join(pwd.getpwnam(os.getlogin())[5], ".ssh/id_rsa.pub")
 
     username = prompt('Username: ')
     password = getpass.getpass("Password: ")
@@ -87,7 +91,10 @@ def config_user(key_path=user_key_path):
     for command in command_sequence:
         run(command.format(**locals()))
 
-def config_project_user(key_path=user_key_path):
+def config_project_user(key_path=None):
+    if not key_path:
+        key_path = os.path.join(pwd.getpwnam(os.getlogin())[5], ".ssh/id_rsa.pub")
+
     env.user = custom_env['admin_user']
     username = prompt('Username: ')
     password = getpass.getpass("Password: ")
@@ -150,6 +157,13 @@ def server_bootstrap(hostname, fqdn, email):
     if install_db not in ('y', 'n', 'Y', 'N'):
         raise Exception("Valid Answers Y or N")
 
+    pg_mysql = None
+    if install_db in ('Y', 'y'):
+        pg_mysql = prompt('(P)ostgreSQL or (M)ySQL ?')
+        if pg_mysql not in ('p', 'P', 'm', 'M'):
+            raise Exception("Valid Answers P or M")
+
+
     try:
         secret_file = open('secret_key', 'r')
     except:
@@ -159,9 +173,9 @@ def server_bootstrap(hostname, fqdn, email):
     scripts = {
         'server/server_setup.sh':   '/root/server_setup.sh',
         'server/postfix.sh':        '/root/postfix.sh',
-        'server/users.sh':          '/root/users.sh',
         'server/uwsgi.sh':          '/root/uwsgi.sh',
         'server/server_db_setup.sh':'/root/server_db_setup.sh',
+        'server/install_mysql.sh':  '/root/install_mysql.sh',
     }
 
     # Upload files and fixes execution mode
@@ -181,10 +195,13 @@ def server_bootstrap(hostname, fqdn, email):
     sudo("mkdir -m 755 -p %(ENV_LOG)s/nginx" % env)
     put('secret_key', '%(ENV_CONF)s/secret_key' % env, use_sudo=True)
     sudo("touch %(ENV_RUN)s/nginx.pid" % env)
-    sudo("chown -R deploy:www-data %(ENV_ROOT)s" % env)
+    sudo("chown -R ecofunds:www-data %(ENV_ROOT)s" % env)
 
     if install_db in ('Y', 'y'):
-        sudo('/root/server_db_setup.sh')
+        if pg_mysql in ('P', 'p'):
+            sudo('/root/server_db_setup.sh')
+        else:
+            sudo('/root/install_mysql.sh')
 
 
 def server_db_install():
