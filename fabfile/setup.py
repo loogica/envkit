@@ -23,7 +23,7 @@ def server(hostname, fqdn, email):
     ]
 
     # Choose database
-    answer = ask('Which database to install? [Postgres, Mysql, None]',
+    answer = ask('Which database to install? [P]ostgres, [M]ysql, [N]one ',
         options={
             'P': ['server/pg_hba.conf', 'server/postgresql.sh'],
             'M': ['server/mysql.sh'],
