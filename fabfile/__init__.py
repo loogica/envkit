@@ -1,3 +1,4 @@
+"""
 # -*- encoding: utf-8 -*-
 import getpass
 import os
@@ -314,11 +315,11 @@ def first_deploy(revision):
 
 
 def postgres_db_create(dbuser, dbname, password):
-    """
+    '''
         Create a Psql Database: db_create:dbuser,dbname,password
 
     Example: db_create:username,databasename,password
-    """
+    '''
     env.user=ADMIN_USER
 
     prod_settings_file = local('find . | grep settings/production.py', capture=True)
@@ -366,12 +367,12 @@ def nginx_setup():
 
 
 def log(basename=''):
-    """
+    '''
     fab log                      >> List available logs.
     fab log:nginx/access         >> Tail nginx_access.log
     fab log:nginx_access         >> Tail nginx_access.log
     fab log:uwsgi                 >> Tail uwsgi.log
-    """
+    '''
     # List available logs
     if not basename:
         with hide('running'):
@@ -389,3 +390,4 @@ def log(basename=''):
         abort('Logfile: %s not found.' % logfile)
 
     run('tail -f ' + logfile)
+"""
