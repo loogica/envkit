@@ -76,12 +76,6 @@ apt-get -q -y -o DPkg::Options::=--force-confnew install logwatch
 # Watchdog
 ./watchdog.sh
 
-# SSH
-sed -i 's/^#*\s*\(PasswordAuthentication\) \(yes\|no\)/\1 no/g' /etc/ssh/sshd_config
-sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication/g' /etc/ssh/sshd_config
-
-reload ssh
-
 # Git
 apt-get -y -q install git-core
 
@@ -130,3 +124,9 @@ if [ -f postgres.sh ];
 then
    source postgres.sh
 fi
+
+# SSH
+sed -i 's/^#*\s*\(PasswordAuthentication\) \(yes\|no\)/\1 no/g' /etc/ssh/sshd_config
+sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication/g' /etc/ssh/sshd_config
+reload ssh
+
