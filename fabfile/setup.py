@@ -32,8 +32,8 @@ def server(hostname, fqdn, email):
     files.extend(answer)
 
     # Upload files and fixes execution mode
-    for localfile in files.items():
-        put(localfile, '~root/', mirror_local_mode=True)
+    for localfile in files:
+        put(localfile, '~/', mirror_local_mode=True)
 
     run('~root/server_setup.sh %(hostname)s %(fqdn)s %(email)s' % locals())
 
