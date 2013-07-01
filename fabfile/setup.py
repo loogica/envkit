@@ -11,7 +11,7 @@ def server(hostname, fqdn, email):
     '''
     Setup a new server: server_setup:hostname,fqdn,email
 
-    Example: server_setup:palmas,palmas.dekode.com.br,admin@dekode.com.br
+    Example: server:palmas,palmas.dekode.com.br,admin@dekode.com.br
     '''
     env.user = 'root'
 
