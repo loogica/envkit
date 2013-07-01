@@ -48,8 +48,14 @@ def make_environment(name, domain, user=None):
 
 
 def ask(question, options):
-    answer = None
-    while answer not in options.keys():
-        answer = raw_input(question)
+    if isinstance(options, tuple):
+        answers = dict(zip(options, options))
+    else:
+        answers = options
 
-    return options.get(answer)
+    selection = None
+
+    while selection not in answers:
+        selection = raw_input(question)
+
+    return answers.get(selection)

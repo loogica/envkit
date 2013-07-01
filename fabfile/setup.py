@@ -33,6 +33,10 @@ def server(hostname, fqdn, email):
 
     files.extend(answer)
 
+    # Create superuser
+    if 'Y' == ask('Create superuser? [Y]es or [N]o ', options=('Y', 'N')):
+        superuser()
+
     # Upload files and fixes execution mode
     for localfile in files:
         put(localfile, '~/', mirror_local_mode=True)
