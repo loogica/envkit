@@ -1,8 +1,10 @@
 # coding: utf-8
-from fabric.api import env, run, require, abort, task, warn_only, put
+from getpass import getpass
+from fabric.api import env, run, require, abort, task, warn_only, put, prompt, local
 from fabric.colors import red, yellow
 from fabric.contrib.console import confirm
 from fabric.contrib.files import exists
+from unipath import Path
 from .helpers import ask
 
 
@@ -92,3 +94,36 @@ def delete_app():
 
     if exists(env.PROJECT.appdir) and confirm(question, default=False):
         run('rm -rf %(appdir)s' % env.PROJECT)
+
+
+@task
+def superuser(pubkey=None, username=None):
+    """
+    fab env superuser
+    """
+    env.user = 'root'
+
+    keyfile = Path(pubkey or Path('~', '.ssh', 'id_rsa.pub')).expand()
+
+    if not keyfile.exists():
+        abort('Public key file does not exist: %s' % keyfile)
+
+    username = username or prompt('Username: ')
+    password = getpass('Password: ')
+    password = local('perl -e \'print crypt(\"%s\", \"password\")\'' % (password),
+                     capture=True)
+
+    with open(keyfile, 'r') as f:
+        pubkey = f.read(65535)
+
+    commands = (
+        'useradd -m -s /bin/bash -p {password} {username}',
+        'mkdir ~{username}/.ssh -m 700',
+        'echo "{pubkey}" >> ~{username}/.ssh/authorized_keys',
+        'chmod 644 ~{username}/.ssh/authorized_keys',
+        'chown -R {username}:{username} ~{username}/.ssh',
+        'usermod -a -G sudo {username}',
+    )
+
+    for command in commands:
+        run(command.format(**locals()))
