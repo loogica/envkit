@@ -1,0 +1,5 @@
+USER=$1
+PASSWORD=$2
+
+
+sudo -u postgres psql template1 -c "CREATE USER $USER WITH CREATEDB ENCRYPTED PASSWORD '$PASSWORD'"
