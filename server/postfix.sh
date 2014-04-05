@@ -74,4 +74,4 @@ EOF
 
 debconf-set-selections /var/cache/debconf/postfix.preseed
 apt-get -q -y -o DPkg::Options::=--force-confold install postfix
-
+apt-get -q -y install mailutils

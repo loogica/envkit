@@ -53,7 +53,7 @@ apt-get -q -y install vim-nox
 apt-get -q -y install sudo
 apt-get -q -y install htop
 apt-get -q -y install watchdog
-apt-get -q -y install mailutils
+apt-get -q -y install makepasswd
 apt-get -q -y install htop
 apt-get -q -y install zip
 
@@ -73,11 +73,8 @@ EOF
 # Logwatch
 apt-get -q -y -o DPkg::Options::=--force-confnew install logwatch
 
-# SSH
-sed -i 's/^#*\s*\(PasswordAuthentication\) \(yes\|no\)/\1 no/g' /etc/ssh/sshd_config
-sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication/g' /etc/ssh/sshd_config
-
-reload ssh
+# Watchdog
+./watchdog.sh
 
 # Git
 apt-get -y -q install git-core
@@ -115,3 +112,21 @@ source uwsgi.sh
 
 # Memcached
 apt-get -y -q install memcached
+
+# Install Mysql
+if [ -f mysql.sh ];
+then
+   source mysql.sh
+fi
+
+# Install Postgres
+if [ -f postgres.sh ];
+then
+   source postgres.sh
+fi
+
+# SSH
+sed -i 's/^#*\s*\(PasswordAuthentication\) \(yes\|no\)/\1 no/g' /etc/ssh/sshd_config
+sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication/g' /etc/ssh/sshd_config
+reload ssh
+
